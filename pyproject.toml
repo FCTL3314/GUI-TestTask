@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "gui-test-task"
+version = "0.1.0"
+description = "Graphical ToDo application."
+authors = ["Nikita Solouyou <solovev.nikita.05@gmail.com>"]
+readme = "README.md"
+packages = [{include = "gui_test_task"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.9.1"
+ruff = "^0.0.289"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
