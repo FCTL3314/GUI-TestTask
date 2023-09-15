@@ -1,25 +1,34 @@
 import tkinter
 from tkinter import messagebox
 
+from base import BaseTodoApp
 
-class TodoApp:
+
+class TodoApp(BaseTodoApp):
     def __init__(
             self,
+            width: int,
+            height: int,
+            title: str,
             text_color: str,
             bg_color: str,
             bg_secondary_color: str,
             btn_color: str,
             btn_hover_color: str,
     ):
-        self.text_color = text_color
-        self.bg_color = bg_color
-        self.bg_secondary_color = bg_secondary_color
-        self.btn_color = btn_color
-        self.btn_hover_color = btn_hover_color
-
+        super().__init__(
+            width,
+            height,
+            title,
+            text_color,
+            bg_color,
+            bg_secondary_color,
+            btn_color,
+            btn_hover_color,
+        )
         self.root = tkinter.Tk()
 
-        self.title = self.create_title()
+        self.label_title = self.create_title()
         self.input = self.create_input()
 
         self.tasks_frame = self.create_tasks_frame()
@@ -32,9 +41,21 @@ class TodoApp:
 
     def run(self) -> None:
         """
-        Launches the application
+        Starts the application.
         """
+        self.configure()
         self.root.mainloop()
+
+    def configure(self) -> None:
+        """
+        Configures the application, the interaction of
+        different parts of applications with each other.
+        """
+        self.root.title(self.title)
+        self.root.geometry(f"{self.width}x{self.height}")
+        self.root.configure(bg=self.bg_color)
+        self.tasks_listbox.config(yscrollcommand=self.tasks_listbox_scrollbar.set)
+        self.tasks_listbox_scrollbar.config(command=self.tasks_listbox.yview)
 
     def create_title(self) -> tkinter.Label:
         """
@@ -60,7 +81,7 @@ class TodoApp:
             fg=self.text_color,
             background=self.bg_secondary_color,
         )
-        entry.pack()
+        entry.pack(fill=tkinter.BOTH)
         return entry
 
     def create_tasks_frame(self) -> tkinter.Frame:
@@ -70,10 +91,9 @@ class TodoApp:
         frame = tkinter.Frame(
             self.root,
             background=self.bg_secondary_color,
-            width=500,
             height=200,
         )
-        frame.pack(pady=(0, 20))
+        frame.pack(pady=(0, 20), fill=tkinter.BOTH)
         return frame
 
     def create_tasks_listbox_scrollbar(self) -> tkinter.Scrollbar:
@@ -92,7 +112,7 @@ class TodoApp:
             self.tasks_frame,
             selectmode=tkinter.EXTENDED,
         )
-        listbox.pack(side=tkinter.LEFT)
+        listbox.pack(side=tkinter.LEFT, fill=tkinter.BOTH, expand=True)
         return listbox
 
     def add_task(self) -> None:
@@ -123,7 +143,7 @@ class TodoApp:
             border=0,
         )
         self.create_btn_hover(button)
-        button.pack()
+        button.pack(pady=(0, 10))
         return button
 
     def edit_task(self) -> None:
@@ -163,7 +183,7 @@ class TodoApp:
             border=0,
         )
         self.create_btn_hover(button)
-        button.pack()
+        button.pack(pady=(0, 10))
         return button
 
     def remove_task(self) -> None:
@@ -193,7 +213,7 @@ class TodoApp:
             border=0,
         )
         self.create_btn_hover(button)
-        button.pack()
+        button.pack(pady=(0, 10))
         return button
 
     def create_btn_hover(self, button) -> None:
@@ -211,31 +231,29 @@ class TodoApp:
 
 
 class TodoAppBuilder:
+    width = 750
+    height = 450
+    title = "Todo App"
     text_color = "white"
     bg_color = "gray16"
     bg_secondary_color = "gray26"
     btn_color = "dodgerblue3"
     btn_hover_color = "dodgerblue4"
 
-    def __init__(self, app: type[TodoApp]):
-        self.app = app(
+    def __init__(self, app: type[BaseTodoApp]):
+        self.app = app
+
+    def build(self) -> BaseTodoApp:
+        return self.app(
+            self.width,
+            self.height,
+            self.title,
             self.text_color,
             self.bg_color,
             self.bg_secondary_color,
             self.btn_color,
             self.btn_hover_color,
         )
-
-    def build(self) -> TodoApp:
-        self.configure()
-        self.app.tasks_listbox.config(yscrollcommand=self.app.tasks_listbox_scrollbar.set)
-        self.app.tasks_listbox_scrollbar.config(command=self.app.tasks_listbox.yview)
-        return self.app
-
-    def configure(self) -> None:
-        self.app.root.title("Todo App")
-        self.app.root.geometry("750x450")
-        self.app.root.configure(bg=self.app.bg_color)
 
 
 if __name__ == "__main__":
