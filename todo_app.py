@@ -1,10 +1,50 @@
+import sqlite3
 import tkinter
 from tkinter import messagebox
 
-from base import BaseTodoApp
+from base import TodoAppWithDB
 
 
-class TodoApp(BaseTodoApp):
+class TodoAppDBManager:
+    def __init__(self):
+        self.conn = sqlite3.connect("sqlite3.db")
+        self.cursor = self.conn.cursor()
+        self.create_tables()
+
+    def create_tables(self):
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS tasks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, task_text TEXT
+            )
+        ''')
+        self.conn.commit()
+
+    def get_task_id_by_index(self, index: int) -> None | int:
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT id FROM tasks")
+        task_ids = cursor.fetchall()
+        if 0 <= index < len(task_ids):
+            return task_ids[index][0]
+        return None
+
+    def load_tasks(self) -> list[str]:
+        data = self.cursor.execute("SELECT task_text FROM tasks")
+        return data.fetchall()
+
+    def add_task(self, task) -> None:
+        self.cursor.execute(f"INSERT INTO tasks (task_text) VALUES ('{task}')")
+        self.conn.commit()
+
+    def edit_task(self, task_id, new_task) -> None:
+        self.cursor.execute(f"UPDATE tasks SET task_text = '{new_task}' WHERE id = {task_id}")
+        self.conn.commit()
+
+    def remove_task(self, task_id) -> None:
+        self.cursor.execute(f"DELETE FROM tasks WHERE id = {task_id}")
+        self.conn.commit()
+
+
+class TodoApp(TodoAppWithDB):
     def __init__(
             self,
             width: int,
@@ -15,6 +55,7 @@ class TodoApp(BaseTodoApp):
             bg_secondary_color: str,
             btn_color: str,
             btn_hover_color: str,
+            db_manager: TodoAppDBManager,
     ):
         super().__init__(
             width,
@@ -25,6 +66,7 @@ class TodoApp(BaseTodoApp):
             bg_secondary_color,
             btn_color,
             btn_hover_color,
+            db_manager
         )
         self.root = tkinter.Tk()
 
@@ -38,6 +80,8 @@ class TodoApp(BaseTodoApp):
         self.add_task_btn = self.create_add_task_btn()
         self.edit_task_btn = self.create_edit_task_btn()
         self.remove_task_btn = self.create_remove_task_btn()
+
+        self.load_tasks()
 
     def run(self) -> None:
         """
@@ -56,6 +100,10 @@ class TodoApp(BaseTodoApp):
         self.root.configure(bg=self.bg_color)
         self.tasks_listbox.config(yscrollcommand=self.tasks_listbox_scrollbar.set)
         self.tasks_listbox_scrollbar.config(command=self.tasks_listbox.yview)
+
+    def load_tasks(self):
+        for task in self.db_manager.load_tasks():
+            self.tasks_listbox.insert(tkinter.END, task[0])
 
     def create_title(self) -> tkinter.Label:
         """
@@ -123,6 +171,7 @@ class TodoApp(BaseTodoApp):
         if task:
             self.tasks_listbox.insert(tkinter.END, task)
             self.input.delete(0, tkinter.END)
+            self.db_manager.add_task(task)
         else:
             messagebox.showwarning(
                 "Empty task",
@@ -159,9 +208,12 @@ class TodoApp(BaseTodoApp):
         else:
             try:
                 selected_tasks = self.tasks_listbox.curselection()
-                for task in selected_tasks:
-                    self.tasks_listbox.delete(task)
-                    self.tasks_listbox.insert(task, new_task_text)
+                for task_index in selected_tasks:
+                    task_id = self.db_manager.get_task_id_by_index(task_index)
+                    if task_id is not None:
+                        self.db_manager.edit_task(task_id, new_task_text)
+                    self.tasks_listbox.delete(task_index)
+                    self.tasks_listbox.insert(task_index, new_task_text)
                     self.input.delete(0, tkinter.END)
             except IndexError:
                 messagebox.showwarning(
@@ -196,8 +248,11 @@ class TodoApp(BaseTodoApp):
                 "Нет выбранной задачи",
                 "Пожалуйста, выберите задачу для удаления.",
             )
-        for task in selected_tasks[::-1]:
-            self.tasks_listbox.delete(task)
+        for task_index in selected_tasks[::-1]:
+            task_id = self.db_manager.get_task_id_by_index(task_index)
+            if task_id is not None:
+                self.db_manager.remove_task(task_id)
+            self.tasks_listbox.delete(task_index)
 
     def create_remove_task_btn(self) -> tkinter.Button:
         """
@@ -240,10 +295,10 @@ class TodoAppBuilder:
     btn_color = "dodgerblue3"
     btn_hover_color = "dodgerblue4"
 
-    def __init__(self, app: type[BaseTodoApp]):
+    def __init__(self, app: type[TodoAppWithDB]):
         self.app = app
 
-    def build(self) -> BaseTodoApp:
+    def build(self) -> TodoAppWithDB:
         return self.app(
             self.width,
             self.height,
@@ -253,4 +308,5 @@ class TodoAppBuilder:
             self.bg_secondary_color,
             self.btn_color,
             self.btn_hover_color,
+            TodoAppDBManager,
         )

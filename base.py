@@ -31,3 +31,29 @@ class BaseTodoApp(AbstractGUIApp, ABC):
         self.bg_secondary_color = bg_secondary_color
         self.btn_color = btn_color
         self.btn_hover_color = btn_hover_color
+
+
+class TodoAppWithDB(BaseTodoApp, ABC):
+    def __init__(
+            self,
+            width: int,
+            height: int,
+            title: str,
+            text_color: str,
+            bg_color: str,
+            bg_secondary_color: str,
+            btn_color: str,
+            btn_hover_color: str,
+            db_manager: callable,
+    ):
+        super().__init__(
+            width,
+            height,
+            title,
+            text_color,
+            bg_color,
+            bg_secondary_color,
+            btn_color,
+            btn_hover_color,
+        )
+        self.db_manager = db_manager()
