@@ -1,6 +1,6 @@
 # 📃 About
 The GUI-TestTask is a graphical application created with Python and the tkinter library. The application allows to create tasks, delete, as well as modify them.
-> The project is a test task.
+> The project was created as a test task.
 
 # 💽 Installation
 
