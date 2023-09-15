@@ -5,9 +5,9 @@ The GUI-TestTask is a graphical application created with Python and the tkinter 
 # 💽 Installation
 
 1. #### Clone or download the repository.
-2. #### Install dependencies: `poetry install`
-3. #### Activate the Poetry virtual environment: `poetry shell`
-4. Run application: `python main.py`
+2. #### Activate the Poetry virtual environment: `poetry shell`
+3. #### Install dependencies: `poetry install`
+4. #### Run application: `python main.py`
 
 # 🌄 Demonstration
 
