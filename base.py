@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+from managers import TodoAppDBManager
+
 
 class AbstractGUIApp(ABC):
     def __init__(self, width: int, height: int):
@@ -44,7 +46,7 @@ class TodoAppWithDB(BaseTodoApp, ABC):
             bg_secondary_color: str,
             btn_color: str,
             btn_hover_color: str,
-            db_manager: callable,
+            db_manager: type[TodoAppDBManager],
     ):
         super().__init__(
             width,
